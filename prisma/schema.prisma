@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int       @id @default(autoincrement())
+  email    String?   @unique
+  password String?
+  githubId Int?      @unique
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Session {
+  user   User   @relation(fields: [userId], references: [id])
+  userId Int
+  token  String
+
+  @@id([userId, token])
+  @@map("sessions")
+}
+
+model Category {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  tests Test[]
+
+  @@map("categories")
+}
+
+model Teacher {
+  id          Int                 @id @default(autoincrement())
+  name        String              @unique
+  disciplines TeacherDiscipline[]
+
+  @@map("teachers")
+}
+
+model Term {
+  id         Int          @id @default(autoincrement())
+  number     Int          @unique
+  discipline Discipline[]
+
+  @@map("terms")
+}
+
+model Discipline {
+  id       Int                 @id @default(autoincrement())
+  name     String              @unique
+  term     Term                @relation(fields: [termId], references: [id])
+  termId   Int
+  teachers TeacherDiscipline[]
+
+  @@map("disciplines")
+}
+
+model TeacherDiscipline {
+  id           Int        @id @default(autoincrement())
+  teacher      Teacher    @relation(fields: [teacherId], references: [id])
+  teacherId    Int
+  discipline   Discipline @relation(fields: [disciplineId], references: [id])
+  disciplineId Int
+  tests        Test[]
+
+  @@map("teachersDisciplines")
+}
+
+model Test {
+  id                  Int               @id @default(autoincrement())
+  name                String
+  pdfUrl              String
+  category            Category          @relation(fields: [categoryId], references: [id])
+  categoryId          Int
+  teacherDiscipline   TeacherDiscipline @relation(fields: [teacherDisciplineId], references: [id])
+  teacherDisciplineId Int
+  views               Int               @default(0)
+
+  @@map("tests")
+}
