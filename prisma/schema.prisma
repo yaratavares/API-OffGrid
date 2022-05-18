@@ -35,6 +35,7 @@ model Companies {
   name             String
   email            String             @unique
   password         String
+  cnpj             String
   services         Services[]
   messages         Messages[]
   sessionCompanies SessionCompanies[]
