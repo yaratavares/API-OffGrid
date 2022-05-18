@@ -1,12 +1,12 @@
-import { User } from "@prisma/client";
+import { Clients } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import authRepository from "../repositories/authRepository.js";
-import sessionRepository from "../repositories/sessionRepository.js";
+import authRepository from "../repositories/authClientRepository.js";
+import sessionRepository from "../repositories/sessionClientRepository.js";
 import errors from "../utils/errorUtils.js";
 
-async function insertNewUser(newUser: User) {
+async function insertNewUser(newUser: Clients) {
   const user = await authRepository.findByEmail(newUser.email);
 
   if (user) {
@@ -15,12 +15,12 @@ async function insertNewUser(newUser: User) {
 
   const passwordHash = bcrypt.hashSync(newUser.password, 10);
 
-  const userObject: User = { ...newUser, password: passwordHash };
+  const userObject: Clients = { ...newUser, password: passwordHash };
 
   await authRepository.insert(userObject);
 }
 
-async function createSession(logUser: User) {
+async function createSession(logUser: Clients) {
   const user = await authRepository.findByEmail(logUser.email);
 
   if (!user) {
@@ -36,12 +36,11 @@ async function createSession(logUser: User) {
   return token;
 }
 
-export async function verifyOrCreateSession(user: User) {
+export async function verifyOrCreateSession(user: Clients) {
   const session = await sessionRepository.findByUserId(user.id);
 
   const secretKey = process.env.JWT_SECRET;
-  const config = { expiresIn: "1hr" };
-  const token = jwt.sign({ email: user.email }, secretKey, config);
+  const token = jwt.sign({ email: user.email }, secretKey);
 
   if (session) {
     await sessionRepository.update(session, token);
@@ -49,7 +48,7 @@ export async function verifyOrCreateSession(user: User) {
     return token;
   }
 
-  await sessionRepository.create({ userId: user.id, token });
+  await sessionRepository.create({ clientId: user.id, token });
   return token;
 }
 
@@ -67,11 +66,7 @@ export async function verifyToken(token: string) {
     throw errors.unauthorized();
   }
 
-  return session.userId;
+  return session.clientId;
 }
 
-function resetDatabase() {
-  return authRepository.truncate();
-}
-
-export default { createSession, insertNewUser, resetDatabase };
+export default { createSession, insertNewUser };

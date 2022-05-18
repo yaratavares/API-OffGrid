@@ -10,79 +10,105 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id       Int       @id @default(autoincrement())
-  email    String?   @unique
-  password String?
-  githubId Int?      @unique
-  sessions Session[]
+model Clients {
+  id              Int               @id @default(autoincrement())
+  email           String            @unique
+  password        String
+  sessions        SessionClients[]
+  servicesClients ServicesClients[]
+  messages        Messages[]
 
-  @@map("users")
+  @@map("clients")
 }
 
-model Session {
-  user   User   @relation(fields: [userId], references: [id])
-  userId Int
-  token  String
+model SessionClients {
+  client   Clients @relation(fields: [clientId], references: [id])
+  clientId Int
+  token    String
 
-  @@id([userId, token])
-  @@map("sessions")
+  @@id([clientId, token])
+  @@map("sessionClients")
 }
 
-model Category {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  tests Test[]
+model Companies {
+  id               Int                @id @default(autoincrement())
+  name             String
+  email            String             @unique
+  password         String
+  services         Services[]
+  messages         Messages[]
+  sessionCompanies SessionCompanies[]
 
-  @@map("categories")
+  @@map("companies")
 }
 
-model Teacher {
-  id          Int                 @id @default(autoincrement())
-  name        String              @unique
-  disciplines TeacherDiscipline[]
+model SessionCompanies {
+  company   Companies @relation(fields: [companyId], references: [id])
+  companyId Int
+  token     String
 
-  @@map("teachers")
+  @@id([companyId, token])
+  @@map("sessionCompanies")
 }
 
-model Term {
-  id         Int          @id @default(autoincrement())
-  number     Int          @unique
-  discipline Discipline[]
+model Services {
+  id              Int               @id @default(autoincrement())
+  name            String
+  company         Companies         @relation(fields: [companyId], references: [id])
+  companyId       Int
+  servicesClients ServicesClients[]
 
-  @@map("terms")
+  @@map("services")
 }
 
-model Discipline {
-  id       Int                 @id @default(autoincrement())
-  name     String              @unique
-  term     Term                @relation(fields: [termId], references: [id])
-  termId   Int
-  teachers TeacherDiscipline[]
+model ServicesClients {
+  id        Int      @id @default(autoincrement())
+  client    Clients  @relation(fields: [clientId], references: [id])
+  clientId  Int
+  service   Services @relation(fields: [serviceId], references: [id])
+  serviceId Int
 
-  @@map("disciplines")
+  @@map("servicesClients")
 }
 
-model TeacherDiscipline {
-  id           Int        @id @default(autoincrement())
-  teacher      Teacher    @relation(fields: [teacherId], references: [id])
-  teacherId    Int
-  discipline   Discipline @relation(fields: [disciplineId], references: [id])
-  disciplineId Int
-  tests        Test[]
+model Adresses {
+  id         Int    @id @default(autoincrement())
+  street     String
+  number     String
+  postalCode String
+  complement String
+  city       Cities @relation(fields: [cityId], references: [id])
+  cityId     Int
 
-  @@map("teachersDisciplines")
+  @@map("adresses")
 }
 
-model Test {
-  id                  Int               @id @default(autoincrement())
-  name                String
-  pdfUrl              String
-  category            Category          @relation(fields: [categoryId], references: [id])
-  categoryId          Int
-  teacherDiscipline   TeacherDiscipline @relation(fields: [teacherDisciplineId], references: [id])
-  teacherDisciplineId Int
-  views               Int               @default(0)
+model Cities {
+  id      Int        @id @default(autoincrement())
+  name    String
+  state   States     @relation(fields: [stateId], references: [id])
+  stateId Int
+  adress  Adresses[]
 
-  @@map("tests")
+  @@map("cities")
+}
+
+model States {
+  id   Int      @id @default(autoincrement())
+  name String
+  city Cities[]
+
+  @@map("states")
+}
+
+model Messages {
+  id        Int       @id @default(autoincrement())
+  client    Clients   @relation(fields: [clientId], references: [id])
+  clientId  Int
+  company   Companies @relation(fields: [companyId], references: [id])
+  companyId Int
+  text      String
+  time      DateTime  @default(now())
+
+  @@map("messages")
 }

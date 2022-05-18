@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "tests" ADD COLUMN     "views" INTEGER NOT NULL DEFAULT 0;
