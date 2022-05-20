@@ -1,0 +1,28 @@
+version: "3"
+services:
+  db:
+    image: postgres
+    container_name: db
+    restart: always
+    ports:
+      - 2345:5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=090797
+      - POSTGRES_DB=offgrid
+    volumes:
+      - pg:/var/lib/postgresql/data
+
+  node_app:
+    build: .
+    container_name: node_app
+    ports:
+      - 5000:5000
+    volumes:
+      - .:/usr/src
+      - /usr/src/node_modules
+    depends_on:
+      - db
+
+volumes:
+  pg:
